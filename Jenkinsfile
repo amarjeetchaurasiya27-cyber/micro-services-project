@@ -2,21 +2,21 @@ pipeline {
     agent any
 
     environment {
-        // Aapka DockerHub Username
-        DOCKER_USER = "amarjeet001" 
-        
-        // Image names aapke repo ke hisab se
+        // Aapka DockerHub Username aur Image Details
+        DOCKER_USER  = "amarjeet001" 
         BACKEND_IMG  = "backend-app"
         FRONTEND_IMG = "frontend-app"
-        
-        // Build Number ko tag ki tarah use karenge taaki har baar naya version deploy ho
         BUILD_TAG    = "build-${BUILD_NUMBER}"
+        
+        // K8S Configuration - Isse kubectl ko rasta milega
+        // DHAYAN DEIN: Agar aapka Windows user 'lenovo' nahi hai, toh ise badal dein
+        KUBECONFIG   = "C:/Users/lenovo/.kube/config"
+        NO_PROXY     = "localhost,127.0.0.1"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                // Aapki specific repo se code download hoga
                 git branch: 'main', url: 'https://github.com/amarjeetchaurasiya27-cyber/micro-services-project.git'
             }
         }
@@ -24,11 +24,9 @@ pipeline {
         stage('Docker Build & Tag') {
             steps {
                 echo "Building Images..."
-                // Backend aur Frontend images build ho rahi hain
                 bat "docker build -t %DOCKER_USER%/%BACKEND_IMG%:%BUILD_TAG% ./backend"
                 bat "docker build -t %DOCKER_USER%/%FRONTEND_IMG%:%BUILD_TAG% ./frontend"
                 
-                // Latest tag bhi de dete hain reference ke liye
                 bat "docker tag %DOCKER_USER%/%BACKEND_IMG%:%BUILD_TAG% %DOCKER_USER%/%BACKEND_IMG%:latest"
                 bat "docker tag %DOCKER_USER%/%FRONTEND_IMG%:%BUILD_TAG% %DOCKER_USER%/%FRONTEND_IMG%:latest"
             }
@@ -36,12 +34,12 @@ pipeline {
 
         stage('Docker Login & Push') {
             steps {
-                // Jenkins Credentials ID 'docker-creds' use kar rahe hain
+                // Aapka credential ID: dockerhub-creds
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                     echo "Logging into Docker Hub..."
                     bat "docker login -u %USER% -p %PASS%"
                     
-                    echo "Pushing Images to Docker Hub..."
+                    echo "Pushing Images..."
                     bat "docker push %DOCKER_USER%/%BACKEND_IMG%:%BUILD_TAG%"
                     bat "docker push %DOCKER_USER%/%FRONTEND_IMG%:%BUILD_TAG%"
                     bat "docker push %DOCKER_USER%/%BACKEND_IMG%:latest"
@@ -52,23 +50,30 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                echo "Deploying to Kubernetes Cluster..."
-                // Hum validation off kar rahe hain aur rollout restart ko sahi kar rahe hain
-                bat "kubectl apply -f k8s-manifests/ --validate=false"
-                
-                echo "Restarting Deployments to pull latest images..."
-                bat "kubectl rollout restart deployment/backend"
-                bat "kubectl rollout restart deployment/frontend"
+                echo "Deploying to Kubernetes..."
+                // Proxy bypass ke saath apply karenge
+                withEnv(["NO_PROXY=localhost,127.0.0.1", "no_proxy=localhost,127.0.0.1"]) {
+                    // Step 1: Cluster connection check
+                    bat "kubectl cluster-info"
+                    
+                    // Step 2: Apply Manifests
+                    bat "kubectl apply -f k8s-manifests/ --validate=false"
+                    
+                    // Step 3: Force update pods
+                    echo "Restarting deployments to use new images..."
+                    bat "kubectl rollout restart deployment/backend"
+                    bat "kubectl rollout restart deployment/frontend"
+                }
             }
         }
     }
 
     post {
         success {
-            echo "Congratulations Amarjeet! Pipeline successfully complete ho gayi. 🎉"
+            echo "Mubarak ho Amarjeet! Project Deploy ho gaya. 🎉"
         }
         failure {
-            echo "Oops! Pipeline fail ho gayi. Console output check karein. ❌"
+            echo "Pipeline fail hui, check logs. ❌"
         }
     }
 }

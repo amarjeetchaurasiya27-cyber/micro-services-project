@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // Aapka DockerHub Username
-        DOCKER_USER = "amarjeetchaurasiya" 
+        DOCKER_USER = "amarjeet001" 
         
         // Image names aapke repo ke hisab se
         BACKEND_IMG  = "backend-app"

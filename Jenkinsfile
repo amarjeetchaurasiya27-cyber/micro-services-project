@@ -48,21 +48,17 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy with Helm') {
             steps {
-                echo "Deploying to Kubernetes..."
-                // Proxy bypass ke saath apply karenge
-                withEnv(["NO_PROXY=localhost,127.0.0.1", "no_proxy=localhost,127.0.0.1"]) {
-                    // Step 1: Cluster connection check
-                    bat "kubectl cluster-info"
-                    
-                    // Step 2: Apply Manifests
-                    bat "kubectl apply -f k8s-manifests/ --validate=false"
-                    
-                    // Step 3: Force update pods
-                    echo "Restarting deployments to use new images..."
-                    bat "kubectl rollout restart deployment/backend"
-                    bat "kubectl rollout restart deployment/frontend"
+                echo "Deploying to Kubernetes using Helm..."
+                // Hum 'upgrade --install' use kar rahe hain:
+                // Agar app pehle se hai toh update hogi, nahi toh install hogi.
+                withEnv([
+                    "KUBECONFIG=C:/Users/lenovo/.kube/config", 
+                    "NO_PROXY=localhost,127.0.0.1"
+                ]) { 
+                    // --set flag se hum Jenkins ka BUILD_TAG seedha Helm templates mein bhej rahe hain
+                    bat "helm upgrade --install micro-app ./micro-app-chart --set backend.tag=%BUILD_TAG% --set frontend.tag=%BUILD_TAG%"
                 }
             }
         }

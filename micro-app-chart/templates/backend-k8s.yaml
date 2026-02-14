@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: {{ .Values.replicaCount }}  # values.yaml se uthayega
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend-app
+        image: "{{ .Values.backend.image }}:{{ .Values.backend.tag }}"
+        env:
+        - name: DB_HOST
+          value: db
+        ports:
+        - containerPort: {{ .Values.backend.port }}

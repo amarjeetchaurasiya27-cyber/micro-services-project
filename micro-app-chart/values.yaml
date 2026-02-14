@@ -1,0 +1,22 @@
+# Global variables
+replicaCount: 1
+
+# Backend settings
+backend:
+  image: amarjeet001/backend-app
+  tag: latest
+  port: 5000
+
+# Frontend settings
+frontend:
+  image: amarjeet001/frontend-app
+  tag: latest
+  containerPort: 80
+  nodePort: 30009
+
+# Database settings
+database:
+  image: postgres:13
+  dbName: devops_db
+  user: amarjeet
+  pass: password123

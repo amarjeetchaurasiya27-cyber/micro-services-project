@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend-app
-        image: amarjeetchaurasiya/frontend-app:latest # Aapka DockerHub image name
+        image: amarjeet001/frontend-app:latest # Aapka DockerHub image name
         ports:
         - containerPort: 80
 ---

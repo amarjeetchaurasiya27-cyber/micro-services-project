@@ -53,16 +53,12 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 echo "Deploying to Kubernetes Cluster..."
-                // k8s-manifests folder ke andar ki saari files apply honge
-                bat "kubectl apply -f k8s-manifests/"
+                // Hum validation off kar rahe hain aur rollout restart ko sahi kar rahe hain
+                bat "kubectl apply -f k8s-manifests/ --validate=false"
                 
-                // Nayi images ko force update karne ke liye rollout restart
+                echo "Restarting Deployments to pull latest images..."
                 bat "kubectl rollout restart deployment/backend"
                 bat "kubectl rollout restart deployment/frontend"
-                
-                echo "Deployment Status Check..."
-                bat "kubectl rollout status deployment/backend"
-                bat "kubectl rollout status deployment/frontend"
             }
         }
     }

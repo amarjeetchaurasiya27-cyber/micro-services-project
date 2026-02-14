@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Amarjeet DevOps Project</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; margin-top: 100px; background-color: #f0f2f5; }
+        .container { background: white; padding: 40px; border-radius: 20px; display: inline-block; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DevOps Migration Project 🌐</h1>
+        <p id="api-status">Connecting to Backend API...</p>
+        <div id="db-status">Checking Database Connectivity...</div>
+    </div>
+    <script>
+        fetch('http://localhost:5000/')
+            .then(res => res.json())
+            .then(data => document.getElementById('api-status').innerText = data.message);
+        fetch('http://localhost:5000/db-status')
+            .then(res => res.json())
+            .then(data => document.getElementById('db-status').innerText = data.db_status);
+    </script>
+</body>
+</html>

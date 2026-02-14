@@ -50,14 +50,14 @@ pipeline {
 
         stage('Deploy with Helm') {
             steps {
-                echo "Deploying to Kubernetes using Helm..."
-                // Hum 'upgrade --install' use kar rahe hain:
-                // Agar app pehle se hai toh update hogi, nahi toh install hogi.
+                echo "Checking directory structure..."
+                // Isse humein pata chal jayega ki Helm ko folder kahan dikh raha hai
+                bat "dir" 
+                
                 withEnv([
                     "KUBECONFIG=C:/Users/lenovo/.kube/config", 
                     "NO_PROXY=localhost,127.0.0.1"
                 ]) { 
-                    // --set flag se hum Jenkins ka BUILD_TAG seedha Helm templates mein bhej rahe hain
                     bat "helm upgrade --install micro-app ./micro-app-chart --set backend.tag=%BUILD_TAG% --set frontend.tag=%BUILD_TAG%"
                 }
             }
